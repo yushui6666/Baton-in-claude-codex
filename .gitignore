@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# 各项目摘要（用户私有数据，不随套件分发；保留目录结构）
+/projects/*
+!/projects/.gitkeep
