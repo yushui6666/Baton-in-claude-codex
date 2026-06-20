@@ -87,10 +87,29 @@ cd AI-cross-agent
 | 想做的事 | 怎么做 |
 |----------|--------|
 | 接入新项目 | `./add-project.sh <项目路径>`，或直接对 AI 说「把 X 接入协作协议」（它会自己跑脚本）|
-| 查看某项目历史 | 打开 `projects/<项目名>/` 下的 `*.md` |
+| 查看某项目历史 | 打开 `projects/<项目名>/` 下的 `*.md`，或 `git log <项目名>` |
 | 看已接入哪些项目 | 打开 `INDEX.md` |
 | 改协议规则 | 只改 `PROTOCOL.md`（唯一维护点），其余文件是指向它的薄指针 |
 | 卸载 | `./uninstall.sh`（保留摘要与项目内文件） |
+
+---
+
+## Git 分支管理（一项目一分支）
+
+本套件是一个 git 仓库，采用「一项目一分支」策略，让每个项目的摘要历史互不干扰：
+
+- **main 分支**：维护协议文件（`PROTOCOL.md`、`INDEX.md`、`add-project.sh` 等）
+- **项目分支**（分支名 = 项目名）：存放 `projects/<项目名>/` 下的摘要文件
+
+`add-project.sh` 接入新项目时会自动创建对应分支并提交初始 `project.md`，然后切回 `main`。
+每轮工作结束追加摘要后，按如下流程提交：
+
+```bash
+git checkout <项目名>
+git add projects/<项目名>/<终端名>.md
+git commit -m "项目 <项目名>: <本轮简短描述>"
+git checkout main
+```
 
 ---
 
