@@ -41,34 +41,44 @@
 **下次继续**:
 ```
 
-**Git 提交流程**：
+**Git 提交流程**（全程停在 `main`，无需切换分支）：
 
 ```bash
-git checkout <项目名>
 git add projects/<项目名>/<终端名>.md
 git commit -m "项目 <项目名>: <本轮简短描述>"
-git checkout main
 ```
 
 ---
 
-## Git 分支管理规则
+## Git 管理规则
 
-本套件目录是一个 git 仓库，采用「一项目一分支」策略：
+本套件目录是一个 git 仓库，采用「单 `main` 分支」策略——所有项目的摘要都直接提交在 `main` 上，
+**不再为每个项目开分支**。
 
-- **main 分支**：维护协议文件（`PROTOCOL.md`、`INDEX.md`、`add-project.sh`、`install.sh` 等）
-- **项目分支**：每个项目有独立分支（分支名 = 项目名），存放 `projects/<项目名>/` 下的摘要文件（`project.md`、`claude-code.md`、`codex.md` 等）
+- **`main` 分支**：同时维护协议文件（`PROTOCOL.md`、`INDEX.md`、`add-project.sh`、`install.sh` 等）
+  和全部项目摘要（各 `projects/<项目名>/` 目录）。
+- **一项目一目录**：每个项目用一个 `projects/<项目名>/` 目录存放摘要（`project.md`、`claude-code.md`、
+  `codex.md` 等），不再用分支隔离。
+
+### 为什么不用「一项目一分支」
+
+1. 协议要求「会话开始读取全部 `*.md` 摘要」——摘要必须在工作树里随时可见；而分支会把未切换到的
+   项目藏起来，导致这一步在 `main` 上读不到任何摘要、直接失效。
+2. 多个终端共用同一个工作树，反复 `git checkout` 会互相覆盖、触发 "local changes would be
+   overwritten" 冲突，甚至丢失正在编辑的内容。
+3. 单分支下各终端分别写自己的文件（`claude-code.md` 与 `codex.md`），互不干扰，并发更安全。
 
 ### 工作流程
 
-1. **新项目接入**：`add-project.sh` 自动创建项目分支、提交初始 `project.md`，然后切回 `main`
-2. **更新摘要**：每轮工作结束时，切到项目分支、追加摘要、提交、切回 `main`
-3. **查看历史**：`git log <项目分支>` 查看某项目的摘要演进历史
+1. **新项目接入**：`add-project.sh` 在 `main` 上建目录、提交初始 `project.md`（不切换分支）。
+2. **更新摘要**：追加内容后 `git add` + `git commit`，全程停在 `main`。
+3. **查看某项目历史**：`git log -- projects/<项目名>/`（按路径过滤，只看该项目）。
+4. **删除某项目**：`git rm -r projects/<项目名>/`。
 
 ### 提交约定
 
-- **项目分支提交**：`项目 <项目名>: <简短描述>`
-- **main 分支提交**：协议文件修改用 `协议更新: <描述>`
+- **摘要提交**：`项目 <项目名>: <简短描述>`
+- **协议文件修改**：`协议更新: <描述>`
 - **每轮摘要一次提交**：保持提交粒度清晰，方便回溯
 
 ---
@@ -84,7 +94,7 @@ git checkout main
 
 脚本会自动：① 在 `KIT/projects/<项目名>/` 建摘要目录与 `project.md`；
 ② 在项目根写 `CLAUDE.md` + `AGENTS.md`（Claude Code / Codex 自动加载，内含指向本协议的绝对路径）；
-③ 登记到 `KIT/INDEX.md`；④ 创建独立 git 分支 `<项目名>` 并提交，然后切回 `main`。
+③ 登记到 `KIT/INDEX.md`；④ 直接在 `main` 上提交初始 `project.md`（不创建、不切换分支）。
 
 > 任何 AI 终端读到本协议或全局配置后，遇到「接入新项目」请求都应主动运行此脚本。
 

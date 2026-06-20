@@ -87,29 +87,35 @@ cd AI-cross-agent
 | 想做的事 | 怎么做 |
 |----------|--------|
 | 接入新项目 | `./add-project.sh <项目路径>`，或直接对 AI 说「把 X 接入协作协议」（它会自己跑脚本）|
-| 查看某项目历史 | 打开 `projects/<项目名>/` 下的 `*.md`，或 `git log <项目名>` |
+| 查看某项目历史 | 打开 `projects/<项目名>/` 下的 `*.md`，或 `git log -- projects/<项目名>/` |
 | 看已接入哪些项目 | 打开 `INDEX.md` |
 | 改协议规则 | 只改 `PROTOCOL.md`（唯一维护点），其余文件是指向它的薄指针 |
 | 卸载 | `./uninstall.sh`（保留摘要与项目内文件） |
 
 ---
 
-## Git 分支管理（一项目一分支）
+## Git 管理（单 `main` 分支）
 
-本套件是一个 git 仓库，采用「一项目一分支」策略，让每个项目的摘要历史互不干扰：
+本套件是一个 git 仓库，采用**单 `main` 分支**策略：所有项目的摘要都直接提交在 `main` 上，
+每个项目用一个 `projects/<项目名>/` 目录存放，**不再为每个项目开分支**。
 
-- **main 分支**：维护协议文件（`PROTOCOL.md`、`INDEX.md`、`add-project.sh` 等）
-- **项目分支**（分支名 = 项目名）：存放 `projects/<项目名>/` 下的摘要文件
+为什么不用「一项目一分支」：
 
-`add-project.sh` 接入新项目时会自动创建对应分支并提交初始 `project.md`，然后切回 `main`。
-每轮工作结束追加摘要后，按如下流程提交：
+- 协议要求会话开局读取**全部**摘要——摘要必须在工作树里随时可见；分支会把未切换到的项目藏起来，
+  导致开局在 `main` 上读不到任何摘要。
+- 多个终端共用同一个工作树，反复 `git checkout` 会互相覆盖、触发 "local changes would be
+  overwritten" 冲突。
+- 单分支下各终端分别写自己的文件（`claude-code.md` / `codex.md`），并发更安全。
+
+`add-project.sh` 接入新项目时直接在 `main` 上提交初始 `project.md`。每轮工作结束追加摘要后，
+按如下流程提交（全程停在 `main`）：
 
 ```bash
-git checkout <项目名>
 git add projects/<项目名>/<终端名>.md
 git commit -m "项目 <项目名>: <本轮简短描述>"
-git checkout main
 ```
+
+查看单个项目的历史：`git log -- projects/<项目名>/`。
 
 ---
 

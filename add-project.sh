@@ -93,20 +93,17 @@ else
   echo "    | $proj | $path | $desc | [$proj/](./projects/$proj/) |" >&2
 fi
 
-# 4) Git 分支管理：创建项目分支、提交、切回原分支（一项目一分支）
+# 4) Git：直接在 main 提交（单分支模型，不再为每个项目开分支）
 if git -C "$KIT" rev-parse --git-dir > /dev/null 2>&1; then
-  current=$(git -C "$KIT" branch --show-current 2>/dev/null || echo "main")
-  if git -C "$KIT" show-ref --verify --quiet "refs/heads/$proj"; then
-    echo "⏭  Git 分支 $proj 已存在，跳过创建"
-  else
-    git -C "$KIT" checkout -b "$proj" > /dev/null 2>&1
+  if [ -n "$(git -C "$KIT" status --porcelain "projects/$proj/" 2>/dev/null)" ]; then
     git -C "$KIT" add "projects/$proj/" > /dev/null 2>&1
     git -C "$KIT" commit -m "项目 $proj: 初始摘要" > /dev/null 2>&1
-    echo "✅ 创建 Git 分支 $proj 并提交"
-    git -C "$KIT" checkout "$current" > /dev/null 2>&1
+    echo "✅ 已提交到 Git（分支 $(git -C "$KIT" branch --show-current 2>/dev/null || echo main)）"
+  else
+    echo "⏭  无变更，跳过 Git 提交"
   fi
 else
-  echo "⚠️  当前不在 Git 仓库，跳过分支创建"
+  echo "⚠️  $KIT 不是 Git 仓库，跳过提交"
 fi
 
 echo "🎉 完成：$proj 已接入跨终端协作协议（摘要目录 ${ctxdir}）"
